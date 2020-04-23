@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mattermost Add JIRA Links</title>
+</head>
+<body style="font-family: sans-serif">
+  <p>Script que coloca links do JIRA nas mensagens que você envia</p>
+  <img src="https://files.catbox.moe/j8uth4.png">
+  <p>Como usar (escolha uma opção):<p>
+  <details>
+    <summary><strong>Favorito de Navegador</strong></summary>
+    <p>Arraste este link (<a id="bookmarklet">Mattermost JIRA Links</a>) para sua barra de favoritos. Para ativar o script, abra a janela do Mattermost e clique no favorito</p>
+    <p>Será necessário clicar nele toda vez que você abrir uma janela do Mattermost</p>
+  </details>
+  <details>
+    <summary><strong>Request.ly</strong></summary>
+    <p>Vá em New Rule > Insert Script, depois clique em (+) Insert Custom Script. Preencha com os seguintes valores:</p>
+    <p>Request: [Url] [Contains] https://im.tokenlab.com.br</p>
+    <p>Enter source URL: https://gitcdn.xyz/repo/humodz/f9d225d69edc9736db8515b653410da1/raw/bb72f2461e4626e220dbeea661cc5870afdf1c1c/bookmarklet.js</p>
+    <img src="https://files.catbox.moe/ckoc5m.png">
+  </details>
+  <details>
+    <summary><strong>Tampermonkey</strong></summary>
+    <p>Código do script:</p>
+    <code><pre style="background-color: #EEE">
+// ==UserScript==
+// @name         Mattermost Jira Links
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  Add JIRA links to issues in messages
+// @author       Hugo Dzin
+// @match        https://im.tokenlab.com.br/*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    console.log('tampermonkey ok');
+  function addJiraLinks(text) {
+    return text.replace(
+      /(\/)?([A-Z]+-[0-9]+)(\]\()?/g,
+      /* checa se começa com / para nao estragar links */
+      /* checa se termina com ]( para nao estragar links do markdown */
+      (orig, open, issue, close) => {
+        return (open || close) ? orig : `[${issue}](http://jira.tokenlab.com.br/browse/${issue})`;
+      }
+    );
+  }
+
+  function onKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey && (event.target.id === 'post_textbox' || event.target.id === 'edit_textbox')) {
+      event.target.value = addJiraLinks(event.target.value);
+      event.target.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  if (window.__ON_KEY_PRESS__) {
+    document.body.removeEventListener('keypress', window.__ON_KEY_PRESS__, true);
+  }
+
+  window.__ON_KEY_PRESS__ = onKeyPress;
+  document.body.addEventListener('keypress', onKeyPress, true);
+}());
+    </pre></code>
+    <p>Se estiver no Firefox, é necessário alterar as seguintes opções do Tampermonkey:</p>
+    <img src="https://files.catbox.moe/p3tp91.png">
+    <img src="https://files.catbox.moe/40n5a8.png">
+    <img src="https://files.catbox.moe/qgsboz.png">
+  </details>
+  <script id='bookmarklet-code'>
+    javascript: (function () {
+      function addJiraLinks(text) {
+        return text.replace(
+          /(\/)?([A-Z]+-[0-9]+)(\]\()?/g,
+          /* checa se começa com / para nao estragar links */
+          /* checa se termina com ]( para nao estragar links do markdown */
+          (orig, open, issue, close) => {
+            return (open || close) ? orig : `[${issue}](http://jira.tokenlab.com.br/browse/${issue})`;
+          }
+        );
+      }
+
+      function onKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey && (event.target.id === 'post_textbox' || event.target.id === 'edit_textbox')) {
+          event.target.value = addJiraLinks(event.target.value);
+          event.target.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+
+      if (window.__ON_KEY_PRESS__) {
+        document.body.removeEventListener('keypress', window.__ON_KEY_PRESS__, true);
+      }
+
+      window.__ON_KEY_PRESS__ = onKeyPress;
+      document.body.addEventListener('keypress', onKeyPress, true);
+    }());
+  </script>
+  <script>
+    document.getElementById('bookmarklet').href = document.getElementById('bookmarklet-code').innerText;
+  </script>
+</body>
+</html>
